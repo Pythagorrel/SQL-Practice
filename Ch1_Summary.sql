@@ -1,100 +1,137 @@
+-- ==========================================
+-- CHAPTER 1: SINGLE TABLE BASICS
+-- Goal: Master CRUD (Create, Read, Update, Delete)
+-- ==========================================
 
---Basic Single Table Operations (Create,Read,Update,Delete)
-
-CREATE TABLE IF NOT EXISTS inventory(
-chemical_name TEXT,
-bottles INTEGER,
-hazard_level INTEGER
+-- 1. SETUP: Creating the Table
+-- 'IF NOT EXISTS' prevents errors if you run the script twice.
+CREATE TABLE IF NOT EXISTS inventory (
+    chemical_name TEXT,
+    bottles INTEGER,
+    hazard_level INTEGER
 );
 
-INSERT INTO inventory VALUES ('Acetone',5,2);
-INSERT INTO inventory VALUES ('HCL',2,3);
-INSERT INTO inventory VALUES ('Water',10,0); 
+-- 2. CREATE: Adding Data (INSERT)
+INSERT INTO inventory VALUES ('Acetone', 5, 2);
+INSERT INTO inventory VALUES ('HCl', 2, 3); -- Note: SQL is sensitive to string casing!
+INSERT INTO inventory VALUES ('Water', 10, 0);
 
-SELECT*FROM inventory;
+-- 3. READ: Viewing Data (SELECT)
+-- The asterisk (*) acts as a wildcard for "All Columns"
+SELECT * FROM inventory;
 
-SELECT*FROM inventory
-WHERE hazard_level>1;
-
+-- 4. UPDATE: Modifying Data
+-- ALWAYS include a WHERE clause, or you will overwrite the entire table!
 UPDATE inventory
 SET bottles = 4
 WHERE chemical_name = 'Acetone';
 
-SELECT*FROM inventory; 
-
+-- 5. DELETE: Removing Data
 DELETE FROM inventory
 WHERE chemical_name = 'Water';
 
-SELECT*FROM inventory; 
+-- Check status after modifications
+SELECT * FROM inventory;
 
+-- Advanced Update: Mathematical operations inside a query
+-- "Set the new bottle count equal to the old count plus 5"
 UPDATE inventory
-SET bottles = bottles+5
-WHERE chemical_name = 'HCL'; --updates a value of a specfic cell in the table
+SET bottles = bottles + 5
+WHERE chemical_name = 'HCl'; 
 
-SELECT*FROM inventory;
+-- ==========================================
+-- DATA POPULATION FOR ANALYSIS
+-- ==========================================
+INSERT INTO inventory VALUES ('Methanol', 12, 3);
+INSERT INTO inventory VALUES ('Ethanol', 8, 2);
+INSERT INTO inventory VALUES ('Sulfuric Acid', 3, 3);
+INSERT INTO inventory VALUES ('Sodium Hydroxide', 5, 3);
+INSERT INTO inventory VALUES ('Distilled Water', 20, 0);
+INSERT INTO inventory VALUES ('Saline Solution', 5, 0);
 
-INSERT INTO inventory VALUES ('Methanol', 12,3); --Adds news rows to the table under the column headings
-INSERT INTO inventory VALUES ('Ethanol',8,2);
-INSERT INTO inventory VALUES ('Sulfuric Acid',3,3);
-INSERT INTO inventory VALUES ('Sodium Hydroxide',5,3);
-INSERT INTO inventory VALUES ('Distilled Water',20,0);
-INSERT INTO inventory VALUES ('Saline Solution',5,0); 
+-- ==========================================
+-- LOGIC & FILTERING
+-- ==========================================
 
-SELECT*FROM inventory; --Shows all rows 
+-- Logical Operators (AND / OR)
+-- Both conditions must be true
+SELECT * FROM inventory
+WHERE hazard_level >= 3 AND bottles < 5;
 
--- Basic Single Table Logic and Math Operations-- 
+-- Pattern Matching (LIKE)
+-- % matches any sequence of characters
+-- _ matches exactly one character
+SELECT * FROM inventory 
+WHERE chemical_name LIKE '%Acid%'; -- Contains "Acid" anywhere
 
-SELECT*FROM inventory
-WHERE hazard_level >=3 AND bottles < 5; --All rows that fulfil both conditions
+SELECT * FROM inventory
+WHERE chemical_name LIKE '%ol'; -- Ends with "ol" (e.g., Ethanol)
 
-SELECT*FROM inventory 
-WHERE chemical_name LIKE '%Acid%'; --Shows all rows where name has 'Acid'
+-- Sorting (ORDER BY)
+-- ASC = Ascending (default), DESC = Descending
+SELECT * FROM inventory
+ORDER BY hazard_level DESC;
 
-SELECT*FROM inventory
-WHERE chemical_name LIKE '%ol'; --Shows all rows with name ending in -ol
+-- Multi-level Sorting
+-- Sort by hazard first. If hazards are equal, break tie with name.
+SELECT * FROM inventory
+ORDER BY hazard_level DESC, chemical_name ASC;
 
-SELECT*FROM inventory
-ORDER BY hazard_level DESC; --Shows all rows from inventory ordered by descending hazard numbers
-
-SELECT*FROM inventory
-ORDER BY hazard_level DESC, chemical_name ASC; --all rows ordered first by descending hazard number, and where hazard numbers are equal, alphabetical order
-
-SELECT*FROM inventory
+-- Limiting Results
+-- Useful for "Top N" lists
+SELECT * FROM inventory
 ORDER BY bottles DESC
-LIMIT 3; --returns top three results 
+LIMIT 3;
 
+-- Range Filtering (BETWEEN / IN)
+SELECT * FROM inventory
+WHERE bottles BETWEEN 5 AND 10; -- Inclusive range
+
+SELECT * FROM inventory
+WHERE chemical_name IN ('Methanol', 'Ethanol', 'Distilled Water');
+
+-- ==========================================
+-- AGGREGATION & MATH
+-- ==========================================
+
+-- Basic Math Functions (SUM, AVG, MIN, MAX, COUNT)
+-- 'AS' renames the output column (Aliasing)
 SELECT SUM(bottles) AS Total_Inventory
-FROM inventory; --sums column and renames output from SUM(bottles) to Total_Inventory
+FROM inventory;
 
 SELECT AVG(hazard_level) AS Average_Hazard_Level
-FROM inventory; 
+FROM inventory;
 
-SELECT*FROM inventory
-WHERE bottles BETWEEN 5 AND 10; 
+-- ==========================================
+-- ADVANCED GROUPING (The Pivot Table)
+-- ==========================================
 
-SELECT*FROM inventory
-WHERE chemical_name IN ('Methanol','Ethanol','Distilled Water'); --only shows the rows with these chemical names 
-
-SELECT*FROM inventory
-WHERE hazard_level = 3 AND bottles<10
-ORDER BY bottles ASC;
-
---Distinct and Group By 
-
+-- DISTINCT
+-- Returns unique values only (removes duplicates)
 SELECT DISTINCT hazard_level
-FROM inventory; --returns the unique values, eliminates redundancy and shows categories rather than individual numbers
+FROM inventory;
 
+-- GROUP BY
+-- Collapses rows sharing a value and applies math to them
 SELECT hazard_level, SUM(bottles) AS Total_Bottles
 FROM inventory
-GROUP BY hazard_level; --chooses column, math, from table_name. Groups by column
+GROUP BY hazard_level;
 
+-- GROUP BY with HAVING
+-- WHERE filters rows BEFORE grouping.
+-- HAVING filters groups AFTER math is done.
 SELECT hazard_level, SUM(bottles) AS Total_Bottles
 FROM inventory
 GROUP BY hazard_level
-HAVING SUM(bottles) >20; --'HAVING' filters GROUPED ROWS; 'WHERE' filters individual rows BEFORE grouping
+HAVING SUM(bottles) > 20;
 
+-- Complex Query Combination
+-- 1. Filter rows (WHERE hazard > 0)
+-- 2. Group them by hazard level
+-- 3. Count chemicals in each group
+-- 4. Sort the groups
 SELECT hazard_level, COUNT(chemical_name) AS No_of_Chemicals
 FROM inventory
-WHERE hazard_level>0
+WHERE hazard_level > 0
 GROUP BY hazard_level
-ORDER BY hazard_level DESC; 
+ORDER BY hazard_level DESC;
