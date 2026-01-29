@@ -1,2 +1,3 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Force all .sql files to be counted in language stats
+*.sql linguist-detectable=true
+*.sql linguist-language=SQL
