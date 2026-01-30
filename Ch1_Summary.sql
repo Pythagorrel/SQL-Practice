@@ -6,9 +6,9 @@
 -- 1. SETUP: Creating the Table
 -- 'IF NOT EXISTS' prevents errors if you run the script twice.
 CREATE TABLE IF NOT EXISTS inventory (
-    chemical_name TEXT,
-    bottles INTEGER,
-    hazard_level INTEGER
+    chemical_name TEXT NOT NULL,
+    bottles INTEGER CHECK (bottles>=0),
+    hazard_level INTEGER CHECK (hazard_level BETWEEN 0 AND 4)
 );
 
 -- 2. CREATE: Adding Data (INSERT)
